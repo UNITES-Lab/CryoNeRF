@@ -1,20 +1,11 @@
-import os
 import pickle
 import random
 
-# import cv2
 import mrcfile
 import numpy as np
-import rich
-import scipy
 import torch
-import torch.nn as nn
-import torch.nn.functional as F
-from einops import rearrange, repeat
-from skimage.draw import disk
-from skimage.filters import butterworth
 from skimage.transform import resize
-from torch.utils.data import DataLoader, Dataset
+from torch.utils.data import Dataset
 
 from ..utils import *
 
@@ -45,23 +36,12 @@ class EMPIARDataset(Dataset):
             self.ctf_params = pickle.load(f)
 
         with mrcfile.open(mrcs) as f:
-            # mean = np.mean(f.data)
-            # std = np.std(f.data)
-            # print(f"Normalizing images using mean: {mean}, std: {std}")
-            # self.images = sign * (f.data - mean) / std
             self.images = f.data
-            
-        # local_rng = np.random.default_rng(42)
-        # permuted_indices = local_rng.permutation(np.arange(len(self.images)))
-        # self.images = self.images[permuted_indices][:200000]
-        # self.ctf_params = self.ctf_params[permuted_indices][:200000]
-        # self.rotations = self.rotations[permuted_indices][:200000]
-        # self.translations = self.translations[permuted_indices][:200000]
             
         # first randomly permute and then split
         if args.first_half or args.second_half:
             local_rng = np.random.default_rng(42)
-            permuted_indices = local_rng.permutation(np.arange(len(self.images)))
+            permuted_indices = local_rng.permutation(np.arange(len(self.images))) # The local_rng is only effective here
             self.images = self.images[permuted_indices]
             self.ctf_params = self.ctf_params[permuted_indices]
             self.rotations = self.rotations[permuted_indices]
@@ -111,30 +91,15 @@ class EMPIARDataset(Dataset):
         freqs = torch.from_numpy(np.stack([freq.flatten() for freq in np.meshgrid(freq_v, freq_h, indexing="ij")],
                                           axis=1)) / (sample["ctf_params"][1] * sample["ctf_params"][0] / self.size)
 
-        rr, cc = disk((self.size // 2, self.size // 2), self.size * 0.6 // 2, shape=(self.size, self.size))
-        freqs_mask = np.zeros((self.size, self.size))
-        freqs_mask[rr, cc] = 1
-        sample["freqs_mask"] = torch.from_numpy(freqs_mask).float()
-        # sample["ctfs"] = compute_ctf(freqs, *torch.split(sample["ctf_params"][2:], 1, 0)).reshape(sample["images"].shape).float() * sample["freqs_mask"]
         sample["ctfs"] = compute_ctf(freqs, *torch.split(sample["ctf_params"][2:], 1, 0)).reshape(sample["images"].shape).float()
-        # sample["enc_images"] = sample["images"]
-        # sample["enc_images"] = fft.ht2_center(torch.from_numpy(
-        #     cv2.resize(self.images[index].copy(), (self.size, self.size),  interpolation=cv2.INTER_LINEAR))).float() * sample["freqs_mask"] / 320.8006591796875 #* sample["ctfs"].sign() / 320.8006591796875
-        # sample["enc_images"] = torch.from_numpy(low_pass_filter(sample["images"].numpy(), self.size, scale=0.6)).float()
-        # sample["enc_images"] = torch.from_numpy(butterworth(sample["images"].numpy(), cutoff_frequency_ratio=6 / self.size,
-        #                                                     high_pass=False, order=1)).float()
+        
         if self.args.hartley:
             sample["enc_images"] = symmetrize_ht(self.sign * ht2_center(sample["images"]))
         else:
             sample["enc_images"] = self.sign * sample["images"]
-            # sample["enc_images"] = torch.from_numpy(butterworth(sample["images"].numpy(), cutoff_frequency_ratio=6 / self.size,
-            #                                                     high_pass=False, order=1)).float()
-
+            
         sample["img_mask"] = self.img_mask
-        # sample["sphere_mask"] = torch.from_numpy(draw_inscribed_sphere(self.size)).reshape(self.size**2, self.size).bool()
         
-        if self.args.cryodrgn_z:
-            sample["latent_variables"] = self.latent_variables[index]
         sample["indices"] = index
         
         return sample

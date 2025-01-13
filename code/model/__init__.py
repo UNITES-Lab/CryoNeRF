@@ -1,2 +1,2 @@
 from .cryo_nerf import CryoNeRF
-from .deformation import DeformationDecoder, DeformationEncoder
+from .deformation import ImageEncoder

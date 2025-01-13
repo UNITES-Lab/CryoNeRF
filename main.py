@@ -18,6 +18,12 @@ from code.model import CryoNeRF
 class Args:
     """Arguments of CryoNeRF."""
     
+    dataset_dir: str
+    """Root dir for datasets. It should be the parent folder of the dataset you want to reconstruct."""
+    
+    dataset: Literal["empiar-10028", "empiar-10076", "empiar-10049", "empiar-10180", "IgG-1D", "Ribosembly"]
+    """Which dataset to use."""
+    
     size: int = 256
     """Size of the volume and particle images."""
 
@@ -27,25 +33,16 @@ class Args:
     ray_num: int = 8192
     """Number of rays to query in a batch."""
     
-    enc_dim: int = 16
-    """Positional encoding, the output dim is 6 * enc_dim."""
-    
     nerf_hid_dim: int = 128
     """Hidden dim of NeRF."""
     
     nerf_hid_layer_num: int = 2
     """Number of hidden layers besides the input and output layer."""
     
-    dfom_hid_dim: int = 128
-    """Hidden dim of deformation field."""
-    
-    dfom_hid_layer_num: int = 2
-    """Number of hidden layers besides the input and output layer of deformation field.."""
-    
-    dfom_encoder_type: Literal["resnet18", "resnet34", "resnet50", "convnext_small", "convnext_base", ""] = "resnet18"
+    hetero_encoder_type: Literal["resnet18", "resnet34", "resnet50", "convnext_small", "convnext_base", ""] = "resnet18"
     """Encoder for deformation latent variable."""
     
-    dfom_latent_dim: int = 16
+    hetero_latent_dim: int = 16
     """Latent variable dim for deformation encoder."""
     
     save_dir: str = "experiments/test"
@@ -60,19 +57,11 @@ class Args:
     print_step: int = 100
     """Number of steps to print once."""
     
-    dataset: Literal["empiar-10028", "empiar-10076", "empiar-10049", "empiar-10180",
-                     "IgG-1D", "Ribosembly", "Tomotwin-100", "empiar-10345", "empiar-10425",
-                     "empiar-10697", "TRPV1", "empiar-11043"] = "empiar-10028"
-    """EMPIAR dataset to use."""
-    
-    dataset_dir: str
-    """Root dir for datasets."""
-    
-    sign: Literal[1, -1] = 1
-    """Sign of the particle images."""
+    sign: Literal[1, -1] = -1
+    """Sign of the particle images. For datasets used in the paper, this will be automatically set."""
     
     seed: int = -1
-    """Seed everything"""
+    """Whether to set a random seed. Default to not."""
     
     load_ckpt: str | None = None
     """The checkpoint to load"""
@@ -80,63 +69,29 @@ class Args:
     epochs: int = 1
     """Number of epochs for training."""
     
-    enable_dfom: bool = False
-    """Whether to enable deformation for heterogeneous reconstruction."""
-    
-    checkpointing: bool = False
-    """Whether to use checkpointing to save GPU memory."""
+    hetero: bool = False
+    """Whether to enable heterogeneous reconstruction."""
     
     val_only: bool = False
     """Only val"""
     
-    test_only: bool = False
-    """Only test"""
-    
     first_half: bool = False
-    "Whether to use the first half of the data to train."
+    """Whether to use the first half of the data to train for GSFSC computation."""
     
     second_half: bool = False
-    "Whether to use the second half of the data to train."
-    
-    pe_type: Literal["nerf", "cryodrgn", "ingp", "gaussian"] = "cryodrgn"
-    "Type of positional encoding to use."
-    
-    vae_weight: float = 5e-4
+    """Whether to use the second half of the data to train for GSFSC computation."""
     
     precision: str = "16-mixed"
-    
-    use_vae: bool = False
-
-    cryodrgn_z: str = ""
-
-    dfom_start: int = -1
-
-    dfom_embedding: bool = False
-
-    decode_2d: bool = False
-
-    use_emb: bool = False
-
-    use_vq: bool = False
-
-    use_mixing: bool = False
-
-    volume_mixing: bool = False
-
-    image_mixing: bool = False
-
-    image_only: bool = False
+    """The neumerical precision for all the computation. Recommended to set as default at 16-mixed."""
 
     max_steps: int = -1
-
-    gradient_clip_val: float = None
-
-    # Simple model, which only has the vision encoder and the neural representation
-    simple: bool = False
+    """The number of training steps. If set, this will supersede num_epochs."""
 
     log_time: bool = False
+    """Whether to log the training time."""
 
-    hartley: bool = False
+    hartley: bool = True
+    """Whether to encode the particle image in hartley space. This will improve heterogeneous reconstruction."""
     
 class IterationProgressBar(TQDMProgressBar):
     def init_train_tqdm(self):
@@ -196,8 +151,6 @@ class RichIterationProgressBar(RichProgressBar):
 if __name__ == "__main__":
     args = tyro.cli(Args)
     
-    CryoNeRFModel = CryoNeRF
-    
     os.makedirs(args.save_dir, exist_ok=True)
     
     if args.dataset == "empiar-10028":
@@ -212,27 +165,15 @@ if __name__ == "__main__":
         sign = -1
     elif args.dataset == "Ribosembly":
         sign = -1
-    elif args.dataset == "Tomotwin-100":
-        sign = -1
-    elif args.dataset == "empiar-10345":
-        sign = -1
-    elif args.dataset == "empiar-10425":
-        sign = -1
-    elif args.dataset == "empiar-10697":
-        sign = -1
-    elif args.dataset == "TRPV1":
-        sign = -1
-    elif args.dataset == "empiar-11043":
-        sign = -1
     else:
         sign = None
         rich.print("[red]Unknown dataset. Use sign specified in args![/red]")
     
     if args.load_ckpt:
-        cryo_nerf = CryoNeRFModel.load_from_checkpoint(args.load_ckpt, strict=True, args=args)
+        cryo_nerf = CryoNeRF.load_from_checkpoint(args.load_ckpt, strict=True, args=args)
         print("Model loaded:", args.load_ckpt)
     else:
-        cryo_nerf = CryoNeRFModel(args=args)
+        cryo_nerf = CryoNeRF(args=args)
         
     dataset = EMPIARDataset(
         mrcs=f"{args.dataset_dir}/{args.dataset}/particles.mrcs",
@@ -276,8 +217,6 @@ if __name__ == "__main__":
     if args.val_only:
         print(cryo_nerf)
         validator.validate(model=cryo_nerf, dataloaders=valid_dataloader, ckpt_path=args.load_ckpt)
-    elif args.test_only:
-        pass
     else:
         print(cryo_nerf)
         trainer.fit(model=cryo_nerf, train_dataloaders=train_dataloader, ckpt_path=args.load_ckpt)

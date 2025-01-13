@@ -1,20 +1,143 @@
 # CryoNeRF
 
+CryoNeRF is a computational tool for homogeneous and heterogeneous (conformational and compositional) cryo-EM reconstruction in Euclidean 3D space.
+
+Copyright (C) 2025 Huaizhi Qu, Xiao Wang, Yuanyuan Zhang, Sheng Wang, William Stafford Noble and Tianlong Chen.
+
+License: GPL v3. (If you are interested in a different license, for example, for commercial use, please contact us.)
+
+Contact: Tianlong Chen (tianlong@cs.unc.edu)
+
+For technical problems or questions, please reach to Huaizhi Qu (huaizhiq@cs.unc.edu).
+
+### Citation
+
+Huaizhi Qu, Xiao Wang, Yuanyuan Zhang, Sheng Wang, William Stafford Noble & Tianlong Chen. CryoNeRF: reconstruction of homogeneous and heterogeneous cryo-EM structures using neural radiance field. Biorxiv, 2025. Paper
+
+```
+```
+
+### Checkpoints & Files
+
+The checkpoints for all experiments in our paper and the reconstructions can be found at https://doi.org/10.5281/zenodo.14602456.
+
+### Installation
+
+#### 1. Clone the repository to your computer
+
+```bash
+git clone https://github.com/UNITES-Lab/CryoNeRF.git && cd CryoNeRF
+```
+
+
+
+#### 2. Configure Python environment for CryoNeRF
+
+1. Install conda at https://conda-forge.org/
+
+2. Set up the Python environment via yml file
+
+   ```bash
+   conda env create -f environment.yml
+   ```
+
+   and activate the environmentt
+
+   ```bash
+   conda activate CryoNeRF
+   ```
+
+   To deactivate
+
+   ```bash
+   conda deactivate
+   ```
+
+3. After setting up `CryoNeRF` environment, install `tiny-cuda-nn`
+
+   ```bash
+   pip install git+https://github.com/NVlabs/tiny-cuda-nn/#subdirectory=bindings/torch
+   ```
+
+### Usage
+
+The commands for CryoNeRF are:
+
+```bash
+Arguments of CryoNeRF:
+
+  -h, --help
+      Show this help message and exit.
+  --dataset-dir STR
+      Root directory for datasets. It should be the parent folder of the dataset you want to reconstruct. (required)
+  --dataset {empiar-10028,empiar-10076,empiar-10049,empiar-10180,IgG-1D,Ribosembly}
+      Specify which dataset to use. (required)
+  --size INT
+      Size of the volume and particle images. (default: 256)
+  --batch-size INT
+      Batch size for training. (default: 1)
+  --ray-num INT
+      Number of rays to query in a batch. (default: 8192)
+  --nerf-hid-dim INT
+      Hidden dimension of NeRF. (default: 128)
+  --nerf-hid-layer-num INT
+      Number of hidden layers besides the input and output layer. (default: 2)
+  --hetero-encoder-type {resnet18,resnet34,resnet50,convnext_small,convnext_base}
+      Encoder type for deformation latent variable. (default: resnet18)
+  --hetero-latent-dim INT
+      Latent variable dimension for deformation encoder. (default: 16)
+  --save-dir STR
+      Directory to save visualization and checkpoint. (default: experiments/test)
+  --log-vis-step INT
+      Number of steps between logging visualization. (default: 1000)
+  --log-density-step INT
+      Number of steps between logging density maps. (default: 10000)
+  --print-step INT
+      Number of steps between printing logs. (default: 100)
+  --sign {1,-1}
+      Sign of the particle images. For datasets used in the paper, this will be automatically set. (default: -1)
+  --seed INT
+      Random seed. Defaults to not setting one. (default: -1)
+  --load-ckpt {None}|STR
+      Path to the checkpoint to load. (default: None)
+  --epochs INT
+      Number of training epochs. (default: 1)
+  --hetero, --no-hetero
+      Enable or disable heterogeneous reconstruction. (default: False)
+  --val-only, --no-val-only
+      Run validation only. (default: False)
+  --first-half, --no-first-half
+      Use the first half of the data for GSFSC computation. (default: False)
+  --second-half, --no-second-half
+      Use the second half of the data for GSFSC computation. (default: False)
+  --precision STR
+      Numerical precision for computations. Recommended to use "16-mixed". (default: 16-mixed)
+  --max-steps INT
+      Maximum number of training steps. If set, this overrides the number of epochs. (default: -1)
+  --log-time, --no-log-time
+      Log the training time. (default: False)
+  --hartley, --no-hartley
+      Encode the particle image in Hartley space for improved heterogeneous reconstruction. (default: True)
+```
+
+
+
 ### Training
 
 To launch training, an example command would be like:
-```
-python main.py --size 128 --save-dir /PATH/TO/SAVE --dataset empiar-10076 --enable-dfom --dfom-latent-dim 32 \
-  --batch-size 2 --epochs 60 --nerf-hid-dim 128 --nerf-hid-layer-num 3 --simple --dfom-encoder-type resnet34 --hartley
+```bash
+python main.py --size 128 --save-dir /PATH/TO/SAVE --dataset-dir /PATH/TO/FOLDER --dataset empiar-10076  \
+	--batch-size 2 --epochs 60 --nerf-hid-dim 128 --nerf-hid-layer-num 3 \
+	--hetero --hetero-latent-dim 32 --hetero-encoder-type resnet34
 ```
 And `--dataset` could be either one of `empiar-10049`, `empiar-10028`, `IgG-1D`, `Ribosembly`, `empiar-10180`, `empiar-10076`.
 
 ### Evaluation
 
 To run evaluation using a checkpoint, an example command is:
-```
-python main.py --size 128 --save-dir /PATH/TO/SAVE --dataset empiar-10076 --enable-dfom --dfom-latent-dim 32 \
-  --batch-size 2 --epochs 60 --nerf-hid-dim 128 --nerf-hid-layer-num 3 --simple --dfom-encoder-type resnet34 --hartley \
-  --val-only --load-ckpt /PATH/TO/CKPT
+```bash
+python main.py --size 128 --save-dir /PATH/TO/SAVE --dataset-dir /PATH/TO/FOLDER --dataset empiar-10076  \
+	--batch-size 2 --epochs 60 --nerf-hid-dim 128 --nerf-hid-layer-num 3 \
+	--hetero --hetero-latent-dim 32 --hetero-encoder-type resnet34 --val-only --load-ckpt /PATH/TO/CKPT
 ```
 This will run evaluation to generate the particle embeddings of all the particle images, embed the particle embeddings using UMAP, divide UMAP embeddings into six clusters and produce one reconstruction for the center of each cluster.
