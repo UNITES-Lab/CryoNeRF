@@ -43,8 +43,6 @@ The checkpoints for all experiments in our paper and the reconstructions can be 
 git clone https://github.com/UNITES-Lab/CryoNeRF.git && cd CryoNeRF
 ```
 
-
-
 #### 2. Configure Python environment for CryoNeRF
 
 1. Install conda at https://conda-forge.org/
@@ -75,11 +73,17 @@ git clone https://github.com/UNITES-Lab/CryoNeRF.git && cd CryoNeRF
 
 ### Data Preparation
 
+#### Procedure
+
 When applying CryoNeRF to unprocessed datasets, we follow similar processes to cryoDRGN, which contains:
 
 1. Consensus reconstruction [using cryoSPARC.](https://ez-lab.gitbook.io/cryodrgn/cryodrgn-empiar-10076-tutorial#id-2-consensus-reconstruction-optional)
 2. [Preprocess inputs with cryoDRGN](https://ez-lab.gitbook.io/cryodrgn/cryodrgn-empiar-10076-tutorial#id-3-preprocess-inputs) to extract the CTF and pose file from the previous step.
 3. Perform reconstruction with the extracted CTF and pose using CryoNeRF.
+
+#### Dataset Downloading
+
+[EMPIAR-10028](https://www.ebi.ac.uk/empiar/EMPIAR-10028/), [EMPIAR-10049](https://www.ebi.ac.uk/empiar/EMPIAR-10049/), [EMPIAR-10180](https://www.ebi.ac.uk/empiar/EMPIAR-10180/), [EMPIAR-10076](https://www.ebi.ac.uk/empiar/EMPIAR-10176/) can be downloaded from the [EMPIAR website](https://www.ebi.ac.uk/empiar/). [IgG-1D](https://zenodo.org/records/11629428/files/IgG-1D.zip?download=1) and [Ribosembly](https://zenodo.org/records/12528292/files/Ribosembly.zip?download=1) can be downloaded by clicking the link.
 
 ### Usage
 
