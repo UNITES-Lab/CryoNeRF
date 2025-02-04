@@ -15,6 +15,20 @@ For technical problems or questions, please reach to Huaizhi Qu (huaizhiq@cs.unc
 Huaizhi Qu, Xiao Wang, Yuanyuan Zhang, Sheng Wang, William Stafford Noble & Tianlong Chen. CryoNeRF: reconstruction of homogeneous and heterogeneous cryo-EM structures using neural radiance field. Biorxiv, 2025. Paper
 
 ```
+
+@misc{qu_cryonerf:_2025,
+	title = {{CryoNeRF}: reconstruction of homogeneous and heterogeneous cryo-{EM} structures using neural radiance field},
+	shorttitle = {{CryoNeRF}},
+	url = {https://www.biorxiv.org/content/10.1101/2025.01.10.632460v1},
+	doi = {10.1101/2025.01.10.632460},
+	language = {en},
+	urldate = {2025-02-04},
+	publisher = {bioRxiv},
+	author = {Qu, Huaizhi and Wang, Xiao and Zhang, Yuanyuan and Wang, Sheng and Noble, William Stafford and Chen, Tianlong},
+	month = jan,
+	year = {2025},
+}
+
 ```
 
 ### Checkpoints & Files
@@ -58,6 +72,14 @@ git clone https://github.com/UNITES-Lab/CryoNeRF.git && cd CryoNeRF
    ```bash
    pip install git+https://github.com/NVlabs/tiny-cuda-nn/#subdirectory=bindings/torch
    ```
+
+### Data Preparation
+
+When applying CryoNeRF to unprocessed datasets, we follow similar processes to cryoDRGN, which contains:
+
+1. Consensus reconstruction [using cryoSPARC.](https://ez-lab.gitbook.io/cryodrgn/cryodrgn-empiar-10076-tutorial#id-2-consensus-reconstruction-optional)
+2. [Preprocess inputs with cryoDRGN](https://ez-lab.gitbook.io/cryodrgn/cryodrgn-empiar-10076-tutorial#id-3-preprocess-inputs) to extract the CTF and pose file from the previous step.
+3. Perform reconstruction with the extracted CTF and pose using CryoNeRF.
 
 ### Usage
 
@@ -119,8 +141,6 @@ Arguments of CryoNeRF:
   --hartley, --no-hartley
       Encode the particle image in Hartley space for improved heterogeneous reconstruction. (default: True)
 ```
-
-
 
 ### Training
 
