@@ -73,13 +73,21 @@ git clone https://github.com/UNITES-Lab/CryoNeRF.git && cd CryoNeRF
 
 ### Data Preparation
 
-#### Procedure
+#### Preparation for New Datasets
 
-When applying CryoNeRF to unprocessed datasets, we follow similar processes to cryoDRGN, which contains:
+CryoNeRF can be easily applied to new datasets not used in our paper. When applying CryoNeRF to these new datasets, unprocessed datasets, we follow similar processes to cryoDRGN, which contains:
 
 1. Consensus reconstruction [using cryoSPARC.](https://ez-lab.gitbook.io/cryodrgn/cryodrgn-empiar-10076-tutorial#id-2-consensus-reconstruction-optional)
 2. [Preprocess inputs with cryoDRGN](https://ez-lab.gitbook.io/cryodrgn/cryodrgn-empiar-10076-tutorial#id-3-preprocess-inputs) to extract the CTF and pose file from the previous step.
 3. Perform reconstruction with the extracted CTF and pose using CryoNeRF.
+
+After processing, please put 
+
+- `particles.mrcs` that contains all the particle images in a single file
+- `ctf.pkl` that contains all ctf parameters for particle images
+- `poses.pkl` that contains poses of all images for the dataset
+
+into the same folder and use `--dataset-dir` to specify the directory of the dataset.
 
 #### Dataset Downloading
 
@@ -97,7 +105,7 @@ Arguments of CryoNeRF:
   --dataset-dir STR
       Root directory for datasets. It should be the parent folder of the dataset you want to reconstruct. (required)
   --dataset {empiar-10028,empiar-10076,empiar-10049,empiar-10180,IgG-1D,Ribosembly}
-      Specify which dataset to use. (required)
+      Specify which dataset to use. (default: "")
   --size INT
       Size of the volume and particle images. (default: 256)
   --batch-size INT

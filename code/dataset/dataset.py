@@ -35,8 +35,7 @@ class EMPIARDataset(Dataset):
         with open(ctf, "rb") as f:
             self.ctf_params = pickle.load(f)
 
-        with mrcfile.open(mrcs) as f:
-            self.images = f.data
+        self.images = mrcfile.read(mrcs)
             
         # first randomly permute and then split
         if args.first_half or args.second_half:
@@ -61,10 +60,6 @@ class EMPIARDataset(Dataset):
         self.raw_size = self.ctf_params[0, 0]
         self.Apix = self.ctf_params[0, 1] * self.ctf_params[0, 0] / self.size
         self.img_mask = window_mask(self.size, in_rad=0.8, out_rad=0.95)
-
-        if args.cryodrgn_z:
-            with open(args.cryodrgn_z, "rb") as f:
-                self.latent_variables = pickle.load(f)
 
     def __len__(self):
         if self.args.max_steps == -1:

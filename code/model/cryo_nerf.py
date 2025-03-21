@@ -228,7 +228,7 @@ class CryoNeRF(pl.LightningModule):
 
     def on_validation_epoch_start(self):
         self.latent_vectors = []
-        self.umap_model_2d = umap.UMAP()
+        self.umap_model = umap.UMAP(n_components=2 if self.args.embedding == "2d" else 1)
         x = np.linspace(-0.5, 0.5, self.size, endpoint=False)
         y = np.linspace(-0.5, 0.5, self.size, endpoint=False)
         z = np.linspace(-0.5, 0.5, self.size, endpoint=False)
@@ -251,29 +251,41 @@ class CryoNeRF(pl.LightningModule):
             if self.hetero:
                 latent_variables = torch.cat(self.latent_vectors, dim=0)
 
-                latent_2d = self.umap_model_2d.fit_transform(latent_variables.numpy(force=True))
-                # latent_2d = PCA(n_components=2).fit_transform(latent_variables.numpy(force=True))
-                np.save(f"{self.save_dir}/latent_2d.npy", latent_2d)
-                # centroids, labels = kmeans2(latent_variables.float().numpy(force=True), k=5)
-                centroids, labels = kmeans2(latent_2d, k=6, seed=42)
-                latent_2d_with_labels = np.column_stack((latent_2d, labels))
+                if latent_variables.shape[1] < 2:
+                    data_1d = latent_variables.numpy(force=True).flatten()
+                    
+                    plt.figure(figsize=(6, 4))
+                    sns.histplot(data_1d, bins=250, color='blue', alpha=0.7)
+                    plt.xlabel("Value")
+                    plt.ylabel("Count")
+                    plt.title("1D Latent Variable Distribution")
+                    plt.tight_layout()
+                    plt.savefig(f'{self.save_dir}/latent.png', dpi=300)
+                    plt.close()
+        
+                    np.save(f"{self.save_dir}/latent_variables.npy", latent_variables.numpy(force=True))
+                    return
+                elif self.args.embedding == "2d":
+                    latent_2d = self.umap_model.fit_transform(latent_variables.numpy(force=True))
+                    np.save(f"{self.save_dir}/latent_2d.npy", latent_2d)
+                    centroids, labels = kmeans2(latent_2d, k=6, seed=42)
+                    latent_2d_with_labels = np.column_stack((latent_2d, labels))
 
-                sns.scatterplot(x=latent_2d_with_labels[:, 0], y=latent_2d_with_labels[:, 1],
-                                hue=latent_2d_with_labels[:, 2], palette="viridis")
-                plt.xlabel("UMAP1")
-                plt.ylabel("UMAP2")
-                plt.tight_layout()
-                plt.savefig(f'{self.save_dir}/scatter_plot.png', dpi=300)
-                plt.close()
+                    sns.scatterplot(x=latent_2d_with_labels[:, 0], y=latent_2d_with_labels[:, 1],
+                                    hue=latent_2d_with_labels[:, 2], palette="viridis")
+                    plt.xlabel("UMAP1")
+                    plt.ylabel("UMAP2")
+                    plt.tight_layout()
+                    plt.savefig(f'{self.save_dir}/scatter_plot.png', dpi=300)
+                    plt.close()
 
-                fig = sns.jointplot(x=latent_2d[:, 0], y=latent_2d[:, 1], kind="hex")
-                fig.ax_joint.set_xlabel("UMAP1")
-                fig.ax_joint.set_ylabel("UMAP2")
-                plt.tight_layout()
-                plt.savefig(f'{self.save_dir}/latent.png', dpi=300)
-                plt.close()
-
-                np.save(f"{self.save_dir}/latent_variables.npy", latent_variables.numpy(force=True))
+                    fig = sns.jointplot(x=latent_2d[:, 0], y=latent_2d[:, 1], kind="hex")
+                    fig.ax_joint.set_xlabel("UMAP1")
+                    fig.ax_joint.set_ylabel("UMAP2")
+                    plt.tight_layout()
+                    plt.savefig(f'{self.save_dir}/latent.png', dpi=300)
+                    plt.close()
+                    np.save(f"{self.save_dir}/latent_variables.npy", latent_variables.numpy(force=True))
             else:
                 latent_variables = None
 

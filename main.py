@@ -1,28 +1,30 @@
 import dataclasses
 import os
+from code.dataset import EMPIARDataset
+from code.model import CryoNeRF
 from typing import Literal
 
 import pytorch_lightning as pl
 import rich
+import torch
 import tyro
-from pytorch_lightning.callbacks import (ModelCheckpoint, RichProgressBar, TQDMProgressBar)
-from pytorch_lightning.strategies import SingleDeviceStrategy
+from pytorch_lightning.callbacks import (ModelCheckpoint, RichProgressBar,
+                                         TQDMProgressBar)
 from pytorch_lightning.loggers import WandbLogger
+from pytorch_lightning.strategies import SingleDeviceStrategy
 from torch.utils.data import DataLoader
-
-from code.dataset import EMPIARDataset
-from code.model import CryoNeRF
 
 
 @dataclasses.dataclass
 class Args:
     """Arguments of CryoNeRF."""
     
-    dataset_dir: str
-    """Root dir for datasets. It should be the parent folder of the dataset you want to reconstruct."""
-    
-    dataset: Literal["empiar-10028", "empiar-10076", "empiar-10049", "empiar-10180", "IgG-1D", "Ribosembly"]
+    dataset: Literal["empiar-10028", "empiar-10076", "empiar-10049", "empiar-10180", "IgG-1D", "Ribosembly",
+                     "uniform", "cooperative", "noncontiguous"] = ""
     """Which dataset to use."""
+    
+    dataset_dir: str = ".."
+    """Root dir for datasets. It should be the parent folder of the dataset you want to reconstruct."""
     
     size: int = 256
     """Size of the volume and particle images."""
@@ -92,6 +94,8 @@ class Args:
 
     hartley: bool = True
     """Whether to encode the particle image in hartley space. This will improve heterogeneous reconstruction."""
+    
+    embedding: Literal["2d", "1d"] = "2d"
     
 class IterationProgressBar(TQDMProgressBar):
     def init_train_tqdm(self):
@@ -165,9 +169,14 @@ if __name__ == "__main__":
         sign = -1
     elif args.dataset == "Ribosembly":
         sign = -1
+    elif args.dataset == "uniform":
+        sign = 1
+    elif args.dataset == "cooperative":
+        sign = 1
+    elif args.dataset == "noncontiguous":
+        sign = 1
     else:
-        sign = None
-        rich.print("[red]Unknown dataset. Use sign specified in args![/red]")
+        sign = -1
     
     if args.load_ckpt:
         cryo_nerf = CryoNeRF.load_from_checkpoint(args.load_ckpt, strict=True, args=args)
@@ -176,9 +185,9 @@ if __name__ == "__main__":
         cryo_nerf = CryoNeRF(args=args)
         
     dataset = EMPIARDataset(
-        mrcs=f"{args.dataset_dir}/{args.dataset}/particles.mrcs",
-        ctf=f"{args.dataset_dir}/{args.dataset}/ctf.pkl",
-        poses=f"{args.dataset_dir}/{args.dataset}/poses.pkl",
+        mrcs=os.path.join(args.dataset_dir, args.dataset, "particles.mrcs"),
+        ctf=os.path.join(args.dataset_dir, args.dataset, "ctf.pkl"),
+        poses=os.path.join(args.dataset_dir, args.dataset, "poses.pkl"),
         args=args,
         size=args.size, sign=sign if sign is not None else args.sign,
     )
