@@ -12,6 +12,7 @@ from pytorch_lightning.callbacks import (ModelCheckpoint, RichProgressBar,
                                          TQDMProgressBar)
 from pytorch_lightning.loggers import WandbLogger
 from pytorch_lightning.strategies import SingleDeviceStrategy
+from pytorch_lightning.utilities import rank_zero
 from torch.utils.data import DataLoader
 
 
@@ -19,12 +20,12 @@ from torch.utils.data import DataLoader
 class Args:
     """Arguments of CryoNeRF."""
     
-    dataset: Literal["empiar-10028", "empiar-10076", "empiar-10049", "empiar-10180", "IgG-1D", "Ribosembly",
-                     "uniform", "cooperative", "noncontiguous"] = ""
-    """Which dataset to use."""
-    
-    dataset_dir: str = ".."
+    dataset_dir: str
     """Root dir for datasets. It should be the parent folder of the dataset you want to reconstruct."""
+    
+    dataset: Literal["empiar-10028", "empiar-10076", "empiar-10049", "empiar-10180", "IgG-1D", "Ribosembly",
+                     "uniform", "cooperative", "noncontiguous", ""] = ""
+    """Which dataset to use. Default as "" for new datasets."""
     
     size: int = 256
     """Size of the volume and particle images."""
@@ -41,7 +42,7 @@ class Args:
     nerf_hid_layer_num: int = 2
     """Number of hidden layers besides the input and output layer."""
     
-    hetero_encoder_type: Literal["resnet18", "resnet34", "resnet50", "convnext_small", "convnext_base", ""] = "resnet18"
+    hetero_encoder_type: Literal["resnet18", "resnet34", "resnet50", "convnext_small", "convnext_base", ""] = "resnet34"
     """Encoder for deformation latent variable."""
     
     hetero_latent_dim: int = 16
@@ -54,13 +55,19 @@ class Args:
     """Number of steps to log visualization."""
 
     log_density_step: int = 10000
-    """Number of steps to log density map."""
+    """Number of steps to log a density map."""
+    
+    ckpt_save_step: int = 20000
+    """Number of steps to save a checkpoint."""
     
     print_step: int = 100
     """Number of steps to print once."""
     
     sign: Literal[1, -1] = -1
     """Sign of the particle images. For datasets used in the paper, this will be automatically set."""
+    
+    load_to_mem: bool = False
+    """Whether to load the full dataset to memory. This can cost a large amount of memory."""
     
     seed: int = -1
     """Whether to set a random seed. Default to not."""
@@ -96,6 +103,7 @@ class Args:
     """Whether to encode the particle image in hartley space. This will improve heterogeneous reconstruction."""
     
     embedding: Literal["2d", "1d"] = "2d"
+    """Whether to use scalar embeddings for particle images."""
     
 class IterationProgressBar(TQDMProgressBar):
     def init_train_tqdm(self):
@@ -157,26 +165,19 @@ if __name__ == "__main__":
     
     os.makedirs(args.save_dir, exist_ok=True)
     
-    if args.dataset == "empiar-10028":
-        sign = -1
-    elif args.dataset == "empiar-10076":
-        sign = 1
-    elif args.dataset == "empiar-10049":
-        sign = -1
-    elif args.dataset == "empiar-10180":
-        sign = -1
-    elif args.dataset == "IgG-1D":
-        sign = -1
-    elif args.dataset == "Ribosembly":
-        sign = -1
-    elif args.dataset == "uniform":
-        sign = 1
-    elif args.dataset == "cooperative":
-        sign = 1
-    elif args.dataset == "noncontiguous":
-        sign = 1
-    else:
-        sign = -1
+    sign_map = {
+        "empiar-10028": -1,
+        "empiar-10076": 1,
+        "empiar-10049": -1,
+        "empiar-10180": -1,
+        "IgG-1D": -1,
+        "Ribosembly": -1,
+        "uniform": 1,
+        "cooperative": 1,
+        "noncontiguous": 1
+    }
+
+    sign = sign_map.get(args.dataset, None) or args.sign
     
     if args.load_ckpt:
         cryo_nerf = CryoNeRF.load_from_checkpoint(args.load_ckpt, strict=True, args=args)
@@ -185,12 +186,14 @@ if __name__ == "__main__":
         cryo_nerf = CryoNeRF(args=args)
         
     dataset = EMPIARDataset(
-        mrcs=os.path.join(args.dataset_dir, args.dataset, "particles.mrcs"),
-        ctf=os.path.join(args.dataset_dir, args.dataset, "ctf.pkl"),
-        poses=os.path.join(args.dataset_dir, args.dataset, "poses.pkl"),
+        mrcs=os.path.join(args.dataset_dir, "particles.mrcs"),
+        ctf=os.path.join(args.dataset_dir, "ctf.pkl"),
+        poses=os.path.join(args.dataset_dir, "poses.pkl"),
         args=args,
-        size=args.size, sign=sign if sign is not None else args.sign,
+        size=args.size,
+        sign=sign,
     )
+    rich.print("[green]Dataset loaded.")
 
     train_dataloader = DataLoader(dataset, batch_size=args.batch_size, num_workers=8, shuffle=True, pin_memory=True, drop_last=True)
     valid_dataloader = DataLoader(dataset, batch_size=128, num_workers=16, shuffle=False, pin_memory=True)
@@ -198,7 +201,7 @@ if __name__ == "__main__":
     logger = WandbLogger(name=f"CryoNeRF-{args.save_dir}", save_dir=args.save_dir, offline=True, project="CryoNeRF")
     logger.experiment.log_code(".")
     
-    checkpoint_callback_step = ModelCheckpoint(dirpath=args.save_dir, save_top_k=-1, verbose=True, every_n_train_steps=20000, save_last=True)
+    checkpoint_callback_step = ModelCheckpoint(dirpath=args.save_dir, save_top_k=-1, verbose=True, every_n_train_steps=args.ckpt_save_step, save_last=True)
     checkpoint_callback_epoch = ModelCheckpoint(dirpath=args.save_dir, save_top_k=-1, verbose=True, every_n_epochs=1)
 
     trainer = pl.Trainer(
@@ -224,9 +227,11 @@ if __name__ == "__main__":
     )
     
     if args.val_only:
-        print(cryo_nerf)
+        if trainer.is_global_zero:
+            print(cryo_nerf)
         validator.validate(model=cryo_nerf, dataloaders=valid_dataloader, ckpt_path=args.load_ckpt)
     else:
-        print(cryo_nerf)
+        if trainer.is_global_zero:
+            print(cryo_nerf)
         trainer.fit(model=cryo_nerf, train_dataloaders=train_dataloader, ckpt_path=args.load_ckpt)
         validator.validate(model=cryo_nerf, dataloaders=valid_dataloader)

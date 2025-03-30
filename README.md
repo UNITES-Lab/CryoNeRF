@@ -100,59 +100,99 @@ The commands for CryoNeRF are:
 ```bash
 Arguments of CryoNeRF:
 
-  -h, --help
-      Show this help message and exit.
-  --dataset-dir STR
-      Root directory for datasets. It should be the parent folder of the dataset you want to reconstruct. (required)
-  --dataset {empiar-10028,empiar-10076,empiar-10049,empiar-10180,IgG-1D,Ribosembly}
-      Specify which dataset to use. (default: "")
-  --size INT
-      Size of the volume and particle images. (default: 256)
-  --batch-size INT
-      Batch size for training. (default: 1)
-  --ray-num INT
-      Number of rays to query in a batch. (default: 8192)
-  --nerf-hid-dim INT
-      Hidden dimension of NeRF. (default: 128)
-  --nerf-hid-layer-num INT
-      Number of hidden layers besides the input and output layer. (default: 2)
-  --hetero-encoder-type {resnet18,resnet34,resnet50,convnext_small,convnext_base}
-      Encoder type for deformation latent variable. (default: resnet18)
-  --hetero-latent-dim INT
-      Latent variable dimension for deformation encoder. (default: 16)
-  --save-dir STR
-      Directory to save visualization and checkpoint. (default: experiments/test)
-  --log-vis-step INT
-      Number of steps between logging visualization. (default: 1000)
-  --log-density-step INT
-      Number of steps between logging density maps. (default: 10000)
-  --print-step INT
-      Number of steps between printing logs. (default: 100)
-  --sign {1,-1}
-      Sign of the particle images. For datasets used in the paper, this will be automatically set. (default: -1)
-  --seed INT
-      Random seed. Defaults to not setting one. (default: -1)
-  --load-ckpt {None}|STR
-      Path to the checkpoint to load. (default: None)
-  --epochs INT
-      Number of training epochs. (default: 1)
-  --hetero, --no-hetero
-      Enable or disable heterogeneous reconstruction. (default: False)
-  --val-only, --no-val-only
-      Run validation only. (default: False)
-  --first-half, --no-first-half
-      Use the first half of the data for GSFSC computation. (default: False)
-  --second-half, --no-second-half
-      Use the second half of the data for GSFSC computation. (default: False)
-  --precision STR
-      Numerical precision for computations. Recommended to use "16-mixed". (default: 16-mixed)
-  --max-steps INT
-      Maximum number of training steps. If set, this overrides the number of epochs. (default: -1)
-  --log-time, --no-log-time
-      Log the training time. (default: False)
-  --hartley, --no-hartley
-      Encode the particle image in Hartley space for improved heterogeneous reconstruction. (default: True)
+-h, --help
+    show this help message and exit
+
+--dataset-dir STR
+    Root dir for datasets. It should be the parent folder of the dataset you want to reconstruct. (required)
+
+--dataset {empiar-10028, empiar-10076, empiar-10049, empiar-10180, IgG-1D, Ribosembly, uniform, cooperative, noncontiguous}
+    Which dataset to use. Default as ‘’ for new datasets. (default: '')
+
+--size INT
+    Size of the volume and particle images. (default: 256)
+
+--batch-size INT
+    Batch size for training. (default: 1)
+
+--ray-num INT
+    Number of rays to query in a batch. (default: 8192)
+
+--nerf-hid-dim INT
+    Hidden dim of NeRF. (default: 128)
+
+--nerf-hid-layer-num INT
+    Number of hidden layers besides the input and output layer. (default: 2)
+
+--hetero-encoder-type {resnet18, resnet34, resnet50, convnext_small, convnext_base}
+    Encoder for deformation latent variable. (default: resnet34)
+
+--hetero-latent-dim INT
+    Latent variable dim for deformation encoder. (default: 16)
+
+--save-dir STR
+    Dir to save visualization and checkpoint. (default: experiments/test)
+
+--log-vis-step INT
+    Number of steps to log visualization. (default: 1000)
+
+--log-density-step INT
+    Number of steps to log a density map. (default: 10000)
+
+--ckpt-save-step INT
+    Number of steps to save a checkpoint. (default: 20000)
+
+--print-step INT
+    Number of steps to print once. (default: 100)
+
+--sign {1, -1}
+    Sign of the particle images. For datasets used in the paper, this will be automatically set. (default: -1)
+
+--load-to-mem, --no-load-to-mem
+    Whether to load the full dataset to memory. This can cost a large amount of memory. (default: False)
+
+--seed INT
+    Whether to set a random seed. Default to not. (default: -1)
+
+--load-ckpt {None} | STR
+    The checkpoint to load (default: None)
+
+--epochs INT
+    Number of epochs for training. (default: 1)
+
+--hetero, --no-hetero
+    Whether to enable heterogeneous reconstruction. (default: False)
+
+--val-only, --no-val-only
+    Only val (default: False)
+
+--first-half, --no-first-half
+    Whether to use the first half of the data to train for GSFSC computation. (default: False)
+
+--second-half, --no-second-half
+    Whether to use the second half of the data to train for GSFSC computation. (default: False)
+
+--precision STR
+    The numerical precision for all the computation. Recommended to set as default at 16-mixed. (default: 16-mixed)
+
+--max-steps INT
+    The number of training steps. If set, this will supersede num_epochs. (default: -1)
+
+--log-time, --no-log-time
+    Whether to log the training time. (default: False)
+
+--hartley, --no-hartley
+    Whether to encode the particle image in hartley space. This will improve heterogeneous reconstruction. (default: True)
+
+--embedding {2d, 1d}
+    Whether to use scalar embeddings for particle images. (default: 2d)
 ```
+
+### GPU Selection
+
+To select GPUs to use when using the following commands for training and evaluation, please add `CUDA_VISIBLE_DEVICES=XXX` before `python main.py`.
+
+For example, if you only want to use GPU 0 on your server, you can add `CUDA_VISIBLE_DEVICES=0`, or if you want to use GPU 0, 2, 3 for a paralleled training, please add `CUDA_VISIBLE_DEVICES=0,2,3`. If `CUDA_VISIBLE_DEVICES` is not added, the following training and evaluation commands will automatically use all the GPUs available.
 
 ### Training
 

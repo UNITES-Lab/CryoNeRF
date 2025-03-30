@@ -35,7 +35,10 @@ class EMPIARDataset(Dataset):
         with open(ctf, "rb") as f:
             self.ctf_params = pickle.load(f)
 
-        self.images = mrcfile.read(mrcs)
+        if args.load_to_mem:
+            self.images = mrcfile.read(mrcs)
+        else:
+            self.images = mrcfile.mmap(mrcs).data
             
         # first randomly permute and then split
         if args.first_half or args.second_half:
