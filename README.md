@@ -78,7 +78,23 @@ git clone https://github.com/UNITES-Lab/CryoNeRF.git && cd CryoNeRF
 CryoNeRF can be easily applied to new datasets not used in our paper. When applying CryoNeRF to these new datasets, unprocessed datasets, we follow similar processes to cryoDRGN, which contains:
 
 1. Consensus reconstruction [using cryoSPARC.](https://ez-lab.gitbook.io/cryodrgn/cryodrgn-empiar-10076-tutorial#id-2-consensus-reconstruction-optional)
+
 2. [Preprocess inputs with cryoDRGN](https://ez-lab.gitbook.io/cryodrgn/cryodrgn-empiar-10076-tutorial#id-3-preprocess-inputs) to extract the CTF and pose file from the previous step.
+
+   1. To extract poses of particles as poses.pkl, you can use the following command
+
+      ```bash
+      cryodrgn parse_pose_csparc /PATH/TO/YOUR/CS/FILE -D IMAGE_RESOLUTION -o poses.pkl
+      ```
+
+      and replace `/PATH/TO/YOUR/CS/FILE` with the path to your cs file, and `IMAGE_RESOLUTION` with your image resolution (e. g., 128 for 128$\times$128 particle images)
+
+   2. To extract ctf of particle images, you can use the following command
+
+      ```bash
+      cryodrgn parse_ctf_csparc /PATH/TO/YOUR/CS/FILE -o ctf.pkl
+      ```
+
 3. Perform reconstruction with the extracted CTF and pose using CryoNeRF.
 
 After processing, please put 
