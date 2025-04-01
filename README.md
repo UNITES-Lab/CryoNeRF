@@ -87,7 +87,7 @@ CryoNeRF can be easily applied to new datasets not used in our paper. When apply
       cryodrgn parse_pose_csparc /PATH/TO/YOUR/CS/FILE -D IMAGE_RESOLUTION -o poses.pkl
       ```
 
-      and replace `/PATH/TO/YOUR/CS/FILE` with the path to your cs file, and `IMAGE_RESOLUTION` with your image resolution (e. g., 128 for 128$\times$128 particle images)
+      and replace `/PATH/TO/YOUR/CS/FILE` with the path to your cs file, and `IMAGE_RESOLUTION` with your image resolution (e. g., 128 for 128*128 particle images)
 
    2. To extract ctf of particle images, you can use the following command
 
