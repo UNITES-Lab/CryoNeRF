@@ -42,13 +42,10 @@ class EMPIARDataset(Dataset):
             mrcs_files = mrcs if isinstance(mrcs, list) else [mrcs]
             images = [mrcfile.read(mrcs_file) for mrcs_file in mrcs_files]
             self.images = np.concatenate(images, axis=0)
-            # self.images = mrcfile.read(mrcs)
         else:
             mrcs_files = mrcs if isinstance(mrcs, list) else [mrcs]
             images = [mrcfile.mmap(mrcs_file).data for mrcs_file in mrcs_files]
             self.images = np.concatenate(images, axis=0)
-            print(self.images.shape)
-            # self.images = mrcfile.mmap(mrcs).data
             
         # first randomly permute and then split
         if args.first_half or args.second_half:
