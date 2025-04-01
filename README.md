@@ -219,7 +219,7 @@ For example, if you only want to use GPU 0 on your server, you can add `CUDA_VIS
 
 ### Training
 
-Please refer to [Preparation for New Datasets Section](#Preparation for New Datasets).  To launch training, an example command would be like:
+Please refer to [Preparation for New Datasets Section](https://github.com/UNITES-Lab/CryoNeRF?tab=readme-ov-file#preparation-for-new-datasets).  To launch training, an example command would be like:
 ```bash
 python main.py --size 128 --save-dir /PATH/TO/SAVE --dataset-dir /PATH/TO/FOLDER \
 	--batch-size 2 --epochs 60 --nerf-hid-dim 128 --nerf-hid-layer-num 3 \
@@ -240,10 +240,5 @@ In this way, `--particles` option accepts (1) a path to the particle file XXX, (
 
 ### Evaluation
 
-To run evaluation using a checkpoint, an example command is:
-```bash
-python main.py --size 128 --save-dir /PATH/TO/SAVE --dataset-dir /PATH/TO/FOLDER --dataset empiar-10076  \
-	--batch-size 2 --epochs 60 --nerf-hid-dim 128 --nerf-hid-layer-num 3 \
-	--hetero --hetero-latent-dim 32 --hetero-encoder-type resnet34 --val-only --load-ckpt /PATH/TO/CKPT
-```
+To run evaluation using a checkpoint, you only need to add `--val-only` and `--load-ckpt /PATH/TO/YOUR/CKPT` after your training command.
 This will run evaluation to generate the particle embeddings of all the particle images, embed the particle embeddings using UMAP, divide UMAP embeddings into six clusters and produce one reconstruction for the center of each cluster.
