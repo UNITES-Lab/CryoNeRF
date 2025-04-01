@@ -114,94 +114,101 @@ into the same folder and use `--dataset-dir` to specify the directory of the dat
 The commands for CryoNeRF are:
 
 ```bash
-Arguments of CryoNeRF:
+-h, –help
+show this help message and exit
 
--h, --help
-    show this help message and exit
+–dataset-dir STR
+Root dir for datasets. It should be the parent folder of the dataset you want to reconstruct. (default: ‘’)
 
---dataset-dir STR
-    Root dir for datasets. It should be the parent folder of the dataset you want to reconstruct. (required)
+–dataset {empiar-10028, empiar-10076, empiar-10049, empiar-10180, IgG-1D, Ribosembly, uniform, cooperative, noncontiguous,}
+Which dataset to use. Default as “” for new datasets. (default: ‘’)
 
---dataset {empiar-10028, empiar-10076, empiar-10049, empiar-10180, IgG-1D, Ribosembly, uniform, cooperative, noncontiguous}
-    Which dataset to use. Default as ‘’ for new datasets. (default: '')
+–particles {None}|STR|{[STR [STR …]]}
+particle support path(s) to mrcs files, the input could be XXX,YYY,ZZZ or XXX. Will use these particle files if specified. (default: None)
 
---size INT
-    Size of the volume and particle images. (default: 256)
+–poses {None}|STR|{[STR [STR …]]}
+pose support path(s) to pose files, the input could be XXX,YYY,ZZZ or XXX. Will use these pose files if specified. (default: None)
 
---batch-size INT
-    Batch size for training. (default: 1)
+–ctf {None}|STR|{[STR [STR …]]}
+ctf support path(s) to ctf files, the input could be XXX,YYY,ZZZ or XXX. Will use these ctf files if specified. (default: None)
 
---ray-num INT
-    Number of rays to query in a batch. (default: 8192)
+–size INT
+Size of the volume and particle images. (default: 256)
 
---nerf-hid-dim INT
-    Hidden dim of NeRF. (default: 128)
+–batch-size INT
+Batch size for training. (default: 1)
 
---nerf-hid-layer-num INT
-    Number of hidden layers besides the input and output layer. (default: 2)
+–ray-num INT
+Number of rays to query in a batch. (default: 8192)
 
---hetero-encoder-type {resnet18, resnet34, resnet50, convnext_small, convnext_base}
-    Encoder for deformation latent variable. (default: resnet34)
+–nerf-hid-dim INT
+Hidden dim of NeRF. (default: 128)
 
---hetero-latent-dim INT
-    Latent variable dim for deformation encoder. (default: 16)
+–nerf-hid-layer-num INT
+Number of hidden layers besides the input and output layer. (default: 2)
 
---save-dir STR
-    Dir to save visualization and checkpoint. (default: experiments/test)
+–hetero-encoder-type {resnet18, resnet34, resnet50, convnext_small, convnext_base,}
+Encoder for deformation latent variable. (default: resnet34)
 
---log-vis-step INT
-    Number of steps to log visualization. (default: 1000)
+–hetero-latent-dim INT
+Latent variable dim for deformation encoder. (default: 16)
 
---log-density-step INT
-    Number of steps to log a density map. (default: 10000)
+–save-dir STR
+Dir to save visualization and checkpoint. (default: experiments/test)
 
---ckpt-save-step INT
-    Number of steps to save a checkpoint. (default: 20000)
+–log-vis-step INT
+Number of steps to log visualization. (default: 1000)
 
---print-step INT
-    Number of steps to print once. (default: 100)
+–log-density-step INT
+Number of steps to log a density map. (default: 10000)
 
---sign {1, -1}
-    Sign of the particle images. For datasets used in the paper, this will be automatically set. (default: -1)
+–ckpt-save-step INT
+Number of steps to save a checkpoint. (default: 20000)
 
---load-to-mem, --no-load-to-mem
-    Whether to load the full dataset to memory. This can cost a large amount of memory. (default: False)
+–print-step INT
+Number of steps to print once. (default: 100)
 
---seed INT
-    Whether to set a random seed. Default to not. (default: -1)
+–sign {1,-1}
+Sign of the particle images. For datasets used in the paper, this will be automatically set. (default: -1)
 
---load-ckpt {None} | STR
-    The checkpoint to load (default: None)
+–load-to-mem, –no-load-to-mem
+Whether to load the full dataset to memory. This can cost a large amount of memory. (default: False)
 
---epochs INT
-    Number of epochs for training. (default: 1)
+–seed INT
+Whether to set a random seed. Default to not. (default: -1)
 
---hetero, --no-hetero
-    Whether to enable heterogeneous reconstruction. (default: False)
+–load-ckpt {None}|STR
+The checkpoint to load. (default: None)
 
---val-only, --no-val-only
-    Only val (default: False)
+–epochs INT
+Number of epochs for training. (default: 1)
 
---first-half, --no-first-half
-    Whether to use the first half of the data to train for GSFSC computation. (default: False)
+–hetero, –no-hetero
+Whether to enable heterogeneous reconstruction. (default: False)
 
---second-half, --no-second-half
-    Whether to use the second half of the data to train for GSFSC computation. (default: False)
+–val-only, –no-val-only
+Only val. (default: False)
 
---precision STR
-    The numerical precision for all the computation. Recommended to set as default at 16-mixed. (default: 16-mixed)
+–first-half, –no-first-half
+Whether to use the first half of the data to train for GSFSC computation. (default: False)
 
---max-steps INT
-    The number of training steps. If set, this will supersede num_epochs. (default: -1)
+–second-half, –no-second-half
+Whether to use the second half of the data to train for GSFSC computation. (default: False)
 
---log-time, --no-log-time
-    Whether to log the training time. (default: False)
+–precision STR
+The numerical precision for all the computation. Recommended to set as default at 16-mixed. (default: 16-mixed)
 
---hartley, --no-hartley
-    Whether to encode the particle image in hartley space. This will improve heterogeneous reconstruction. (default: True)
+–max-steps INT
+The number of training steps. If set, this will supersede num_epochs. (default: -1)
 
---embedding {2d, 1d}
-    Whether to use scalar embeddings for particle images. (default: 2d)
+–log-time, –no-log-time
+Whether to log the training time. (default: False)
+
+–hartley, –no-hartley
+Whether to encode the particle image in hartley space. This will improve heterogeneous reconstruction. (default: True)
+
+–embedding {2d,1d}
+Whether to use scalar embeddings for particle images. (default: 2d)
 ```
 
 ### GPU Selection
@@ -212,13 +219,24 @@ For example, if you only want to use GPU 0 on your server, you can add `CUDA_VIS
 
 ### Training
 
-To launch training, an example command would be like:
+Please refer to [Preparation for New Datasets Section](#Preparation for New Datasets).  To launch training, an example command would be like:
 ```bash
-python main.py --size 128 --save-dir /PATH/TO/SAVE --dataset-dir /PATH/TO/FOLDER --dataset empiar-10076  \
+python main.py --size 128 --save-dir /PATH/TO/SAVE --dataset-dir /PATH/TO/FOLDER \
 	--batch-size 2 --epochs 60 --nerf-hid-dim 128 --nerf-hid-layer-num 3 \
 	--hetero --hetero-latent-dim 32 --hetero-encoder-type resnet34
 ```
-And `--dataset` could be either one of `empiar-10049`, `empiar-10028`, `IgG-1D`, `Ribosembly`, `empiar-10180`, `empiar-10076`.
+If you are using one of `empiar-10049`, `empiar-10028`, `IgG-1D`, `Ribosembly`, `empiar-10180`, `empiar-10076`, `--dataset` option can be set accordingly to set the sign (-1 or 1) of the dataset. Or if you are doing training on new datasets, this option is not needed and the sign of the dataset can be set by `--sign 1` or `--sign 1`.
+
+Another way to perform training is to use a similar format of cryoDRGN command:
+
+```bash
+python main.py --size 128 --save-dir /PATH/TO/SAVE \
+	--particles /PATH/TO/PARTICLE/FILES --poses /PATH/TO/POSE/FILES --ctf /PATH/TO/CTF/FILES
+	--batch-size 2 --epochs 60 --nerf-hid-dim 128 --nerf-hid-layer-num 3 \
+	--hetero --hetero-latent-dim 32 --hetero-encoder-type resnet34
+```
+
+In this way, `--particles` option accepts (1) a path to the particle file XXX, (2) comma separated paths, e. g., XXX,YYY,ZZZ, or (3) a txt file containing the paths to all particle files, e. g., XXX.txt
 
 ### Evaluation
 

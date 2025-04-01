@@ -1,5 +1,6 @@
 import pickle
 import random
+from pathlib import Path
 
 import mrcfile
 import numpy as np
@@ -22,23 +23,32 @@ def fft_resize(image, raw_size, new_size):
 
 
 class EMPIARDataset(Dataset):
-    def __init__(self, mrcs: str, ctf: str, poses: str, args, size=256, sign=1) -> None:
+    def __init__(self, mrcs: str | list[str], ctf: str | list[str], poses: str | list[str], args, size=256, sign=1) -> None:
         super().__init__()
         self.size = size
         self.args = args
         self.sign = sign
 
-        with open(poses, "rb") as f:
-            poses = pickle.load(f)
-        self.rotations, self.translations = poses
+        pose_files = poses if isinstance(poses, list) else [poses]
+        rotations, translations = list(zip(*(pickle.loads(Path(p).read_bytes()) for p in pose_files)))
+        self.rotations = np.concatenate(rotations, axis=0)
+        self.translations = np.concatenate(translations, axis=0)
 
-        with open(ctf, "rb") as f:
-            self.ctf_params = pickle.load(f)
+        ctf_files = ctf if isinstance(ctf, list) else [ctf]
+        ctf_params = [pickle.loads(Path(p).read_bytes()) for p in ctf_files]
+        self.ctf_params = np.concatenate(ctf_params, axis=0)
 
         if args.load_to_mem:
-            self.images = mrcfile.read(mrcs)
+            mrcs_files = mrcs if isinstance(mrcs, list) else [mrcs]
+            images = [mrcfile.read(mrcs_file) for mrcs_file in mrcs_files]
+            self.images = np.concatenate(images, axis=0)
+            # self.images = mrcfile.read(mrcs)
         else:
-            self.images = mrcfile.mmap(mrcs).data
+            mrcs_files = mrcs if isinstance(mrcs, list) else [mrcs]
+            images = [mrcfile.mmap(mrcs_file).data for mrcs_file in mrcs_files]
+            self.images = np.concatenate(images, axis=0)
+            print(self.images.shape)
+            # self.images = mrcfile.mmap(mrcs).data
             
         # first randomly permute and then split
         if args.first_half or args.second_half:

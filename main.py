@@ -20,12 +20,21 @@ from torch.utils.data import DataLoader
 class Args:
     """Arguments of CryoNeRF."""
     
-    dataset_dir: str
+    dataset_dir: str = ""
     """Root dir for datasets. It should be the parent folder of the dataset you want to reconstruct."""
     
     dataset: Literal["empiar-10028", "empiar-10076", "empiar-10049", "empiar-10180", "IgG-1D", "Ribosembly",
                      "uniform", "cooperative", "noncontiguous", ""] = ""
     """Which dataset to use. Default as "" for new datasets."""
+    
+    particles: str | list[str] | None = None
+    """particle support path(s) to mrcs files, the input could be XXX,YYY,ZZZ or XXX. Will use these particle files if specified."""
+        
+    poses: str | list[str] | None = None
+    """pose support path(s) to pose files, the input could be XXX,YYY,ZZZ or XXX. Will use these poses files if specified."""
+    
+    ctf: str | list[str] | None = None
+    """ctf support path(s) to ctf files, the input could be XXX,YYY,ZZZ or XXX. Will use these ctf files if specified."""
     
     size: int = 256
     """Size of the volume and particle images."""
@@ -163,6 +172,17 @@ class RichIterationProgressBar(RichProgressBar):
 if __name__ == "__main__":
     args = tyro.cli(Args)
     
+    if args.particles is not None:
+        if not args.particles.endswith(".txt"):
+            args.particles = args.particles.split(",")
+        elif args.particles.endswith(".txt"):
+            with open(args.particles, "r") as f:
+                args.particles = [os.path.join(os.path.dirname(args.particles), d.strip()) for d in f.readlines()]
+    if args.ctf is not None:
+        args.ctf = args.ctf.split(",")
+    if args.poses is not None:
+        args.poses = args.poses.split(",")
+    
     os.makedirs(args.save_dir, exist_ok=True)
     
     sign_map = {
@@ -186,9 +206,9 @@ if __name__ == "__main__":
         cryo_nerf = CryoNeRF(args=args)
         
     dataset = EMPIARDataset(
-        mrcs=os.path.join(args.dataset_dir, "particles.mrcs"),
-        ctf=os.path.join(args.dataset_dir, "ctf.pkl"),
-        poses=os.path.join(args.dataset_dir, "poses.pkl"),
+        mrcs=os.path.join(args.dataset_dir, "particles.mrcs") if args.particles is None else args.particles,
+        ctf=os.path.join(args.dataset_dir, "ctf.pkl") if args.ctf is None else args.ctf,
+        poses=os.path.join(args.dataset_dir, "poses.pkl") if args.poses is None else args.poses,
         args=args,
         size=args.size,
         sign=sign,
