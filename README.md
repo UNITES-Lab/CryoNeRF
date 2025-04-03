@@ -56,7 +56,7 @@ git clone https://github.com/UNITES-Lab/CryoNeRF.git && cd CryoNeRF
    and activate the environmentt
 
    ```bash
-   conda activate CryoNeRF
+   conda activate cryonerf
    ```
 
    To deactivate
