@@ -65,7 +65,7 @@ git clone https://github.com/UNITES-Lab/CryoNeRF.git && cd CryoNeRF
    conda deactivate
    ```
 
-3. After setting up `CryoNeRF` environment, install `tiny-cuda-nn`
+3. After setting up `cryonerf` environment, install `tiny-cuda-nn`
 
    ```bash
    pip install git+https://github.com/NVlabs/tiny-cuda-nn/#subdirectory=bindings/torch --no-build-isolation
