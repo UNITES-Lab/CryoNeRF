@@ -68,8 +68,20 @@ git clone https://github.com/UNITES-Lab/CryoNeRF.git && cd CryoNeRF
 3. After setting up `cryonerf` environment, install `tiny-cuda-nn`
 
    ```bash
-   pip install git+https://github.com/NVlabs/tiny-cuda-nn/#subdirectory=bindings/torch --no-build-isolation
+   pip install git+https://github.com/NVlabs/tiny-cuda-nn/#subdirectory=bindings/torch
    ```
+
+4. If the above steps do not work, one alternative way is to first
+   ```
+   pip install torch timm tyro umap-learn wandb pytorch_lightning matplotlib seaborn rich einops mrcfile scikit-image
+   ```
+
+   and then
+   ```
+   pip install git+https://github.com/NVlabs/tiny-cuda-nn/#subdirectory=bindings/torch
+   ```
+
+   
 
 ### Data Preparation
 
