@@ -115,11 +115,10 @@ class CryoNeRF(pl.LightningModule):
     def on_train_start(self) -> None:
         if self.args.log_time:
             self.time_start = time.time()
-
-    def on_train_epoch_start(self) -> None:
+            
         self.ray_idx_all = repeat(torch.arange(
             self.size**2), "HW -> B HW D Dim3", B=self.batch_size, D=self.size, Dim3=3).long().cuda()
-
+            
         x = np.linspace(-0.5, 0.5, self.size, endpoint=False)
         y = np.linspace(-0.5, 0.5, self.size, endpoint=False)
         z = np.linspace(-0.5, 0.5, self.size, endpoint=False)
@@ -130,9 +129,10 @@ class CryoNeRF(pl.LightningModule):
         elif "16" in self.args.precision:
             self.volume_grid = self.volume_grid.half()
 
+        self.t_scale = x[-1] - x[0]
+            
         self.raw_size = self.trainer.train_dataloader.dataset.raw_size
         self.Apix = self.trainer.train_dataloader.dataset.Apix
-        self.t_scale = x[-1] - x[0]
 
     def training_step(self, batch, batch_idx):
         R = batch["rotations"]
