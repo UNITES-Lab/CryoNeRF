@@ -240,6 +240,7 @@ class CryoNeRF(pl.LightningModule):
 
     @torch.no_grad
     def validation_step(self, batch, batch_idx):
+        self.deformation_encoder.train()
         if self.hetero:
             self.latent_vectors.append(self.deformation_encoder(batch["enc_images"].unsqueeze(1)))
         else:

@@ -215,8 +215,8 @@ if __name__ == "__main__":
     )
     rich.print("[green]Dataset loaded.")
 
-    train_dataloader = DataLoader(dataset, batch_size=args.batch_size, num_workers=8, shuffle=True, pin_memory=True, drop_last=True)
-    valid_dataloader = DataLoader(dataset, batch_size=128, num_workers=16, shuffle=False, pin_memory=True)
+    train_dataloader = DataLoader(dataset, batch_size=args.batch_size, num_workers=8, shuffle=False, pin_memory=True, drop_last=True)
+    valid_dataloader = DataLoader(dataset, batch_size=args.batch_size, num_workers=8, shuffle=False, pin_memory=True)
         
     logger = WandbLogger(name=f"CryoNeRF-{args.save_dir}", save_dir=args.save_dir, offline=True, project="CryoNeRF")
     logger.experiment.log_code(".")

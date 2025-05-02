@@ -71,13 +71,31 @@ git clone https://github.com/UNITES-Lab/CryoNeRF.git && cd CryoNeRF
    pip install git+https://github.com/NVlabs/tiny-cuda-nn/#subdirectory=bindings/torch
    ```
 
-4. If the above steps do not work, one alternative way is to first
+4. To remove the `cryonerf` conda environment, please first deactivate it by `conda deactivate` and then
+   ```bash
+   conda remove -n cryonerf --all
    ```
+
+5. **If the above steps do not work well to run the code**, one alternative way is to first
+
+   ```bash
+   conda create -n cryonerf python=3.10
+   ```
+
+   then
+
+   ```bash
+   conda activate cryonerf
+   ```
+
+   Then
+
+   ```bash
    pip install torch timm tyro umap-learn wandb pytorch_lightning matplotlib seaborn rich einops mrcfile scikit-image
    ```
 
-   and then
-   ```
+   and finally
+   ```bash
    pip install git+https://github.com/NVlabs/tiny-cuda-nn/#subdirectory=bindings/torch
    ```
 
